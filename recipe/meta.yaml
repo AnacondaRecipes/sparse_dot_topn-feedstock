@@ -1,17 +1,17 @@
 {% set name = "sparse_dot_topn" %}
-{% set version = "0.3.1" %}
+{% set version = "0.3.6" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 3573cb4a617abe0eab3d5c64f7322a2a6d165a396cacb8f176acb61681ff52fb
+  url: https://github.com/ing-bank/{{ name }}/archive/refs/tags/v{{ version }}.tar.gz
+  sha256: 0dc006725fdf823854291f4451ac55f8923614ba57bafa3e9121e0c2f47b745d
 
 build:
-  number: 2
-  script: {{ PYTHON }} -m pip install . -vv
+  number: 0
+  script: {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
 
 requirements:
   build:
@@ -19,25 +19,38 @@ requirements:
   host:
     - pip
     - python
-    - numpy >=1.16.6
+    - numpy {{ numpy }}
     - cython
     - scipy
+    - setuptools
+    - wheel
   run:
     - python
     - {{ pin_compatible('numpy') }}
-    - scipy
-    - setuptools
+    - scipy >=1.2.3
 
 test:
   imports:
     - sparse_dot_topn
+  source_files:
+    - tests/
+  requires:
+    - pandas
+    - pip
+    - pytest
+  commands:
+    - pip check
+    # Parametrized test test_awesome_cossim_top_small_matrix fails, see https://github.com/ing-bank/sparse_dot_topn/issues/90.
+    # Check the next release of sparse_dot_topn to see if it's fixed.
+    - pytest tests -vv -k "not test_awesome_cossim_top_small_matrix"
 
 about:
   home: https://github.com/ing-bank/sparse_dot_topn
   license: Apache-2.0
   license_family: Apache
   license_file: LICENSE
-  summary: |
+  summary: Python package to accelerate the sparse matrix multiplication and top-n similarity selection
+  description: |
     Sparse_dot_topn provides a fast way to performing a sparse matrix multiplication
     followed by top-n multiplication result selections. Comparing very large feature vectors and
     picking the best matches, in practice often results in performing sparse matrix multiplication
@@ -45,7 +58,7 @@ about:
     customized Cython function for this purpose. When comparing our Cythonic approach to doing the
     same use with SciPy and NumPy functions, our approach improves the speed by about 40% and
     reduces memory consumption.
-  doc_url: https://pypi.org/project/sparse-dot-topn/
+  doc_url: https://github.com/ing-bank/sparse_dot_topn
   dev_url: https://github.com/ing-bank/sparse_dot_topn
 
 extra:
